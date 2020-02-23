@@ -67,6 +67,7 @@ class FeedFragment : Fragment() {
     lateinit var repository: FeedRepository
 
     private val homeViewModel: HomeViewModel by activityViewModels()
+    val r = this
     private val feedViewModel: FeedViewModel by viewModels {
         FeedViewModelFactory(
                 this,
@@ -115,7 +116,7 @@ class FeedFragment : Fragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
-        analytics.setCurrentScreen(activity!!, feedType.name)
+        analytics.setCurrentScreen(requireActivity(), feedType.name)
         feedViewModel.attachEvents(this)
         binding = FragmentFeedBinding.inflate(inflater, container, false)
         binding.lifecycleOwner = this
@@ -144,8 +145,8 @@ class FeedFragment : Fragment() {
     }
 
     private fun getFeedType() {
-        feedType = (arguments!!.getParcelable<ContentToPlay>(OPEN_CONTENT_FROM_NOTIFICATION_KEY)).let {
-            if (it == null) FeedType.valueOf(FeedFragmentArgs.fromBundle(arguments!!).feedType)
+        feedType = (requireArguments().getParcelable<ContentToPlay>(OPEN_CONTENT_FROM_NOTIFICATION_KEY)).let {
+            if (it == null) FeedType.valueOf(FeedFragmentArgs.fromBundle(requireArguments()).feedType)
             else {
                 openContentFromNotification = true
                 openContentFromNotificationContentToPlay = it
@@ -166,7 +167,7 @@ class FeedFragment : Fragment() {
         /** Free account */
         if (paymentStatus == FREE) {
             moPubAdapter = MoPubRecyclerAdapter(
-                    activity!!,
+                    requireActivity(),
                     adapter,
                     MoPubNativeAdPositioning.MoPubServerPositioning())
             moPubAdapter.registerAdRenderer(FacebookAdRenderer(
@@ -204,7 +205,7 @@ class FeedFragment : Fragment() {
             contentRecyclerView.adapter = adapter
         }
         initItemTouchHelper(
-                context = context!!,
+                context = requireContext(),
                 resources = resources,
                 paymentStatus = paymentStatus!!,
                 feedType = feedType,
@@ -282,7 +283,7 @@ class FeedFragment : Fragment() {
         }
         feedViewModel.effects.snackBar.observe(viewLifecycleOwner) {
             when (feedType) {
-                MAIN -> snackbarWithText(resources, it.text, this.parentFragment?.view!!)
+                MAIN -> snackbarWithText(resources, it.text, this.parentFragment?.requireView()!!)
                 SAVED, DISMISSED -> snackbarWithText(resources, it.text, contentFragment)
             }
         }
@@ -346,18 +347,18 @@ class FeedFragment : Fragment() {
                     SAVED -> {
                         binding.emptyContent.shootingStarOne.visibility = GONE
                         binding.emptyContent.earth.visibility = GONE
-                        emptyContent.emptyImage.setImageDrawable(getDrawable(context!!,
+                        emptyContent.emptyImage.setImageDrawable(getDrawable(requireContext(),
                                 ic_coinverse_48dp))
                         emptyContent.title.text = getString(no_saved_content_title)
-                        emptyContent.swipe_right_one.setImageDrawable(getDrawable(context!!,
+                        emptyContent.swipe_right_one.setImageDrawable(getDrawable(requireContext(),
                                 ic_chevron_right_color_accent_24dp))
-                        emptyContent.swipe_right_two.setImageDrawable(getDrawable(context!!,
+                        emptyContent.swipe_right_two.setImageDrawable(getDrawable(requireContext(),
                                 ic_chevron_right_color_accent_fade_one_24dp))
-                        emptyContent.swipe_right_three.setImageDrawable(getDrawable(context!!,
+                        emptyContent.swipe_right_three.setImageDrawable(getDrawable(requireContext(),
                                 ic_chevron_right_color_accent_fade_two_24dp))
-                        emptyContent.swipe_right_four.setImageDrawable(getDrawable(context!!,
+                        emptyContent.swipe_right_four.setImageDrawable(getDrawable(requireContext(),
                                 ic_chevron_right_color_accent_fade_three_24dp))
-                        emptyContent.swipe_right_five.setImageDrawable(getDrawable(context!!,
+                        emptyContent.swipe_right_five.setImageDrawable(getDrawable(requireContext(),
                                 ic_chevron_right_color_accent_fade_four_24dp))
                         emptyContent.emptyInstructions.text =
                                 getString(no_saved_content_instructions)
@@ -366,18 +367,18 @@ class FeedFragment : Fragment() {
                     DISMISSED -> {
                         binding.emptyContent.shootingStarOne.visibility = GONE
                         binding.emptyContent.earth.visibility = GONE
-                        emptyContent.emptyImage.setImageDrawable(getDrawable(context!!,
+                        emptyContent.emptyImage.setImageDrawable(getDrawable(requireContext(),
                                 ic_dismiss_planet_light_48dp))
                         emptyContent.title.text = getString(no_dismissed_content_title)
-                        emptyContent.swipe_right_one.setImageDrawable(getDrawable(context!!,
+                        emptyContent.swipe_right_one.setImageDrawable(getDrawable(requireContext(),
                                 ic_chevron_left_color_accent_24dp))
-                        emptyContent.swipe_right_two.setImageDrawable(getDrawable(context!!,
+                        emptyContent.swipe_right_two.setImageDrawable(getDrawable(requireContext(),
                                 ic_chevron_left_color_accent_fade_one_24dp))
-                        emptyContent.swipe_right_three.setImageDrawable(getDrawable(context!!,
+                        emptyContent.swipe_right_three.setImageDrawable(getDrawable(requireContext(),
                                 ic_chevron_left_color_accent_fade_two_24dp))
-                        emptyContent.swipe_right_four.setImageDrawable(getDrawable(context!!,
+                        emptyContent.swipe_right_four.setImageDrawable(getDrawable(requireContext(),
                                 ic_chevron_left_color_accent_fade_three_24dp))
-                        emptyContent.swipe_right_five.setImageDrawable(getDrawable(context!!,
+                        emptyContent.swipe_right_five.setImageDrawable(getDrawable(requireContext(),
                                 ic_chevron_left_color_accent_fade_four_24dp))
                         emptyContent.emptyInstructions.text =
                                 getString(no_dismissed_content_instructions)
