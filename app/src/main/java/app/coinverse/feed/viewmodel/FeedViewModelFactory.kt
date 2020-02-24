@@ -12,16 +12,10 @@ import app.coinverse.utils.Timeframe
 class FeedViewModelFactory(
         owner: SavedStateRegistryOwner,
         private val repository: FeedRepository,
-        private val analytics: Analytics,
-        private val feedType: FeedType,
-        private val timeframe: Timeframe,
-        private val isRealtime: Boolean) : AbstractSavedStateViewModelFactory(owner, null) {
+        private val analytics: Analytics) : AbstractSavedStateViewModelFactory(owner, null) {
     override fun <T : ViewModel?> create(key: String, modelClass: Class<T>, state: SavedStateHandle) =
             FeedViewModel(
                     stateHandle = state,
                     repository = repository,
-                    analytics = analytics,
-                    feedType = feedType,
-                    timeframe = timeframe,
-                    isRealtime = isRealtime) as T
+                    analytics = analytics) as T
 }

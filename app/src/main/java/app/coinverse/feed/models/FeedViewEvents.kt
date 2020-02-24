@@ -10,6 +10,7 @@ import com.google.firebase.auth.FirebaseUser
  * View state events for content feeds
  */
 interface FeedViewEvents {
+    fun feedLoad(event: FeedLoad)
     fun feedLoadComplete(event: FeedLoadComplete)
     fun swipeToRefresh(event: SwipeToRefresh)
     fun contentSelected(event: ContentSelected)

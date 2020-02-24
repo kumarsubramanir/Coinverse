@@ -17,16 +17,16 @@ import java.util.*
 
 /** View state data for content feeds */
 class _FeedViewState(
-        val _feedViewType: FeedType = MAIN,
-        val _toolbarState: ToolbarState = ToolbarState(),
+        val _feedType: MutableLiveData<FeedType> = MutableLiveData(),
+        val _toolbarState: MutableLiveData<ToolbarState> = MutableLiveData(),
         val _feedList: MutableLiveData<PagedList<Content>> = MutableLiveData(),
         val _feedPosition: Int,
         val _contentToPlay: MutableLiveData<ContentToPlay?> = MutableLiveData(),
         val _contentLabeledPosition: MutableLiveData<Int> = MutableLiveData())
 
 class FeedViewState(_state: _FeedViewState) {
-    val feedType: FeedType = _state._feedViewType
-    val toolbarState: ToolbarState = _state._toolbarState
+    val feedType: LiveData<FeedType> = _state._feedType
+    val toolbarState: LiveData<ToolbarState> = _state._toolbarState
     val feedList: LiveData<PagedList<Content>> = _state._feedList
     val feedPosition: Int = _state._feedPosition
     val contentToPlay: LiveData<ContentToPlay?> = _state._contentToPlay

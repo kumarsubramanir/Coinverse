@@ -67,15 +67,11 @@ class FeedFragment : Fragment() {
     lateinit var repository: FeedRepository
 
     private val homeViewModel: HomeViewModel by activityViewModels()
-    val r = this
     private val feedViewModel: FeedViewModel by viewModels {
         FeedViewModelFactory(
                 this,
                 repository = repository,
-                analytics = analytics,
-                feedType = feedType,
-                timeframe = homeViewModel.timeframe.value!!,
-                isRealtime = homeViewModel.isRealtime.value!!)
+                analytics = analytics)
     }
     private var savedRecyclerPosition: Int = 0
     private var clearAdjacentAds = false
@@ -112,6 +108,10 @@ class FeedFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         getFeedType()
+        feedViewModel.feedLoad(FeedLoad(
+                feedType = feedType,
+                timeframe = homeViewModel.timeframe.value!!,
+                isRealtime = homeViewModel.isRealtime.value!!))
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
@@ -215,7 +215,9 @@ class FeedFragment : Fragment() {
     }
 
     private fun observeViewState() {
-        setToolbar(feedViewModel.state.toolbarState)
+        feedViewModel.state.toolbarState.observe(viewLifecycleOwner) {toolbarState ->
+            setToolbar(toolbarState)
+        }
         feedViewModel.state.feedList.observe(viewLifecycleOwner) { pagedList ->
             adapter.submitList(pagedList)
             viewEvents.feedLoadComplete(FeedLoadComplete(pagedList.isNotEmpty()))
@@ -404,8 +406,8 @@ class FeedFragment : Fragment() {
     }
 
     private fun setToolbar(toolbarState: ToolbarState) {
-        binding.appbar.appBarLayout.visibility = feedViewModel.state.toolbarState.visibility
-        binding.appbar.appBarLayout.titleToolbar.text = context?.getString(feedViewModel.state.toolbarState.titleRes)
+        binding.appbar.appBarLayout.visibility = feedViewModel.state.toolbarState.value?.visibility!!
+        binding.appbar.appBarLayout.titleToolbar.text = context?.getString(feedViewModel.state.toolbarState.value?.titleRes!!)
         if (toolbarState.isActionBarEnabled) {
             appbar.toolbar.title = ""
             (activity as AppCompatActivity).setSupportActionBar(appbar.toolbar)

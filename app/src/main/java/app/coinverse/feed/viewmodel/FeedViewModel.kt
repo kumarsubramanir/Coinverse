@@ -28,15 +28,10 @@ import kotlinx.coroutines.launch
 
 class FeedViewModel(private val stateHandle: SavedStateHandle,
                     private val repository: FeedRepository,
-                    private val analytics: Analytics,
-                    private val feedType: FeedType,
-                    private val timeframe: Timeframe,
-                    private val isRealtime: Boolean) : ViewModel(), FeedViewEvents {
+                    private val analytics: Analytics) : ViewModel(), FeedViewEvents {
     private val LOG_TAG = FeedViewModel::class.java.simpleName
 
     private val _state = _FeedViewState(
-            _feedViewType = feedType,
-            _toolbarState = setToolbar(feedType),
             _feedPosition = stateHandle.get<Int>(FEED_POSITION_KEY).let { position ->
                 if (position == null) 0 else position
             })
@@ -45,15 +40,24 @@ class FeedViewModel(private val stateHandle: SavedStateHandle,
     val effects = FeedViewEffects(_effects)
 
     init {
-        viewModelScope.launch {
-            getFeed(FeedLoad(feedType, timeframe, isRealtime)).collect()
-        }
-        _effects._updateAds.value = UpdateAdsEffect()
+        stateHandle.set(TO_LOAD_VIEWMODEL, true)
     }
 
     /** View events */
     fun attachEvents(fragment: FeedFragment) {
         fragment.initEvents(this)
+    }
+
+    override fun feedLoad(event: FeedLoad) {
+        if (stateHandle.get(TO_LOAD_VIEWMODEL)!!) {
+            _state._feedType.value = event.feedType
+            _state._toolbarState.value = setToolbar(event.feedType)
+            viewModelScope.launch {
+                getFeed(FeedLoad(_state._feedType.value!!, event.timeframe, event.isRealtime)).collect()
+            }
+            _effects._updateAds.value = UpdateAdsEffect()
+        }
+        stateHandle.set(TO_LOAD_VIEWMODEL, false)
     }
 
     override fun feedLoadComplete(event: FeedLoadComplete) {
@@ -62,7 +66,7 @@ class FeedViewModel(private val stateHandle: SavedStateHandle,
 
     override fun swipeToRefresh(event: SwipeToRefresh) {
         viewModelScope.launch {
-            getFeed(SwipeToRefresh(feedType, timeframe, isRealtime)).collect()
+            getFeed(SwipeToRefresh(event.feedType, event.timeframe, event.isRealtime)).collect()
         }
     }
 
@@ -188,7 +192,15 @@ class FeedViewModel(private val stateHandle: SavedStateHandle,
                 if (event is FeedLoad) getTimeframe(event.timeframe)
                 else if (event is SwipeToRefresh) getTimeframe(event.timeframe)
                 else null
-        if (feedType == MAIN) repository.getMainFeedNetwork(isRealtime, timeframe!!).collect { resource ->
+        val feedType =
+                if (event is FeedLoad) event.feedType
+                else if (event is SwipeToRefresh) event.feedType
+                else null
+        val isRealtime =
+                if (event is FeedLoad) event.isRealtime
+                else if (event is SwipeToRefresh) event.isRealtime
+                else null
+        if (feedType == MAIN) repository.getMainFeedNetwork(isRealtime!!, timeframe!!).collect { resource ->
             when (resource.status) {
                 LOADING -> {
                     if (event is SwipeToRefresh)
@@ -212,7 +224,7 @@ class FeedViewModel(private val stateHandle: SavedStateHandle,
                     getMainFeedLocal(timeframe)
                 }
             }
-        } else repository.getLabeledFeedRoom(feedType).collect { pagedList ->
+        } else repository.getLabeledFeedRoom(feedType!!).collect { pagedList ->
             _effects._screenEmpty.value = ScreenEmptyEffect(pagedList.isEmpty())
             _state._feedList.value = pagedList
         }
